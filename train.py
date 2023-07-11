@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 
 mel = np.load('DataSet/mel.npy')
 label = np.load('DataSet/label.npy')
+mel = mel.reshape(len(mel), -1)
 
 def onehot(label):
     onehot = np.zeros((len(label), 15))
@@ -18,7 +19,7 @@ class Model(torch.nn.Module):
         super(Model, self).__init__()
         self.l1 = torch.nn.Linear(n_features, 32)
         self.l2 = torch.nn.Linear(32, 32)
-        self.l3 = torch.nn.Linear(16, 15)
+        self.l3 = torch.nn.Linear(32, 15)
         self.norm1 = torch.nn.BatchNorm1d(32)
         self.norm2 = torch.nn.BatchNorm1d(32)
         self.relu = torch.nn.LeakyReLU(negative_slope=0.005)

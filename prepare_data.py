@@ -129,13 +129,21 @@ print(f"Final dataset size {len(wav)}")
 
 del wav_data
 
-# Convert into mel spectrogram
-windowing = np.hanning(wav.shape[1])
-wav = wav * windowing
-mel = librosa.feature.melspectrogram(y=wav, sr=sample_rate, n_fft=256, hop_length=128, n_mels=32, center=False)
+# Convert into MFCC
+#windowing = np.hanning(wav.shape[1])
+#wav = wav * windowing
+mfcc = librosa.feature.mfcc(y=wav, sr=sample_rate, n_mfcc=24, n_fft=256, hop_length=128, fmin=120, fmax=4000, center=False)
+mfcc = mfcc.reshape((mfcc.shape[0], -1))
+
+# normalize mfcc
+std = np.mean(np.std(mfcc, axis=1))
+mean = np.mean(mfcc)
+print(f"MFCC std {std}")
+print(f"MFCC mean {mean}")
+mfcc = (mfcc - mean) / std
 
 # Shuffle the dataset
-mel, label = shuffle(mel, label)
+mfcc, label = shuffle(mfcc, label)
 
-np.save('DataSet/mel.npy', mel)
+np.save('DataSet/mel.npy', mfcc)
 np.save('DataSet/label.npy', label)
