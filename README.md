@@ -2,7 +2,7 @@
 
 A simple neural network to compute mouth shape from audio. Data and idea taken from [Magicboomliu/Viseme-Classification](https://github.com/Magicboomliu/Viseme-Classification/tree/main/Data%20Training/DataSet). 
 
-This project is a complete rewrite and imrpovment over Magicboomliu/Viseme-Classification. With better data resampling, cleanup and code quality.
+This project is a complete rewrite and imrpovment over Magicboomliu/Viseme-Classification. With better data resampling, cleanup and code quality. Also it's is in active development to improve upon the original accuracy.
 
 ## How to use
 
