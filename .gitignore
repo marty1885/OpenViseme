@@ -1,0 +1,5 @@
+DataSet/
+__pycache__
+*.npy
+*.pth
+
