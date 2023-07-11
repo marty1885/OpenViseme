@@ -25,9 +25,9 @@ assert(len(wav_files) == len(label_files))
 print(f"Dataset size {len(wav_files)} files")
 
 # Enable this block of code to only use a subset of the dataset
-# subset = 100
-# wav_files = wav_files[:subset]
-# label_files = label_files[:subset]
+#subset = 1
+#wav_files = wav_files[:subset]
+#label_files = label_files[:subset]
 
 # DO NOT change. Parameters are fixed by the dataset
 sample_rate = 16000
@@ -42,14 +42,17 @@ def wav2frames(signal, sr, shift_duration, frame_duration):
     # Faster way to split signal into frames compared to for loop
     view = np.lib.stride_tricks.as_strided(signal, shape=(num_frames, frame_length), strides=(signal.strides[0]*shift_length, signal.strides[0])).copy()
     assert(len(view) == num_frames)
+    return view
     """
     res = np.zeros((num_frames, frame_length))
     for frame_idx in range(num_frames):
         idx = frame_idx * shift_length
-        res[frame_idx] = signal[idx:idx+frame_length]
+        buf = np.zeros(frame_length)
+        part = signal[idx:idx+frame_length]
+        buf[:len(part)] = part
+        res[frame_idx] = buf
     return res
     """
-    return view
 
 label_data = [None] * len(wav_files)
 loaded_frames = [None] * len(wav_files)
@@ -67,7 +70,8 @@ for i, (wav, label) in enumerate(zip(wav_files, label_files)):
             if len(line) == 0: continue
             arr = [float(x) for x in line.split(',')]
             num_labels += 1
-            if num_labels > len(frames): break
+            if num_labels > len(frames):
+                lbl = lbl[:-1]
             lbl += [arr]
         label_data[i] = lbl
 
@@ -77,6 +81,7 @@ label_data = np.concatenate(label_data, axis=0)
 print()
 print(f"Total frames {len(wav_data)}")
 print(f"Total labels {len(label_data)}")
+del loaded_frames
 
 assert(len(wav_data) == len(label_data))
 
@@ -84,6 +89,8 @@ good_frames = np.max(np.abs(wav_data), axis=1) > 1e-6 # Filter out frames with 0
 good_frames = good_frames & (np.max(label_data, axis=1) > 0.75) # Skip frames with low confidence
 wav_data = wav_data[good_frames]
 label_data = np.array(label_data)[good_frames]
+
+del good_frames
 
 wav = wav_data
 label = [np.argmax(x) for x in label_data]
@@ -120,11 +127,12 @@ wav = np.array(wav)
 label = np.array(label)
 print(f"Final dataset size {len(wav)}")
 
+del wav_data
+
 # Convert into mel spectrogram
-windowing = np.hanning(wav_data.shape[1])
+windowing = np.hanning(wav.shape[1])
 wav = wav * windowing
 mel = librosa.feature.melspectrogram(y=wav, sr=sample_rate, n_fft=256, hop_length=128, n_mels=32, center=False)
-mel = np.array(mel[:, :, 0]) # Drop the last channel since it is always 1 (1 time slice per frame)
 
 # Shuffle the dataset
 mel, label = shuffle(mel, label)
